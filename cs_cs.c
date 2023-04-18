@@ -125,6 +125,7 @@ struct carriage *check_carriage_exist(struct carriage *head,
 struct train *new_empty_train(struct train *head);
 struct train *create_train(void);
 struct carriage *remove_carriage(char id[ID_SIZE], struct carriage **head);
+struct train *remove_train(struct train **head, struct train *selected);
 void move_passenger(char source_id[ID_SIZE], 
     char destination_id[ID_SIZE],
     int move, 
@@ -133,6 +134,7 @@ void count_total(struct carriage **head);
 void count_passenger(char start_id[ID_SIZE], 
     char end_id[ID_SIZE], 
     struct carriage **head);
+void free_carriages(struct carriage **head);
 int count_position(struct train **head);
 int count_capacity(struct carriage **head);
 int count_carriages(struct carriage **head);
@@ -274,24 +276,31 @@ int main(void) {
            
             }
         } else if (letter == 'P') {
-            int is_selected, position, occupancy, num_carriages;
-            
-            position = count_position(&trains);
-            occupancy = count_occupancy(&selected->carriages);
-            capacity = count_capacity(&selected->carriages);
-            num_carriages = count_carriages(&selected->carriages);
+            int is_selected = 0;
+            int position = 0;
+            int occupancy, num_carriages;
+         
             //capacity = 
             struct train *print_train = trains;
             while (print_train != NULL) {
-                print_train_summary(1, position, capacity, occupancy, num_carriages);
+                if (print_train == selected) {
+                    is_selected = 1;
+                } else {
+                    is_selected = 0;
+                }
+                occupancy = count_occupancy(&print_train->carriages);
+                capacity = count_capacity(&print_train->carriages);
+                num_carriages = count_carriages(&print_train->carriages);
+                print_train_summary(is_selected, position, capacity, occupancy, num_carriages);
                 print_train = print_train->next;
+                position++;
             }
             
         } else if (letter == 'r') {
             scan_id(id);
             selected->carriages = remove_carriage(id, &selected->carriages);
         } else if (letter == 'R') {
-
+            selected = remove_train(&trains, selected);
         }
     
         printf("Enter command: ");
@@ -602,16 +611,7 @@ int count_capacity(struct carriage **head) {
     }
     return unoccupied;
 }
-int count_position(struct train **head) {
-    struct train *current = *head;
-    int counter = 0;
-    while (current != NULL) {
-        current->train_num = counter;
-        counter++;
-        current = current->next;
-    }
-    return counter;
-}
+
 int count_occupancy(struct carriage **head) {
     struct carriage *current = *head;
     int unoccupied = 0;
@@ -660,6 +660,37 @@ struct carriage *remove_carriage(char id[ID_SIZE], struct carriage **head) {
         }
     }
     return *head;
+}
+
+struct train *remove_train(struct train **head, struct train *selected) {
+    if ((*head)->next == NULL) {
+        free_carriages(&(*head)->carriages);
+        return *head;
+    }
+    struct train *previous = *head;
+    struct train *current = *head;
+    while (current != selected) {
+        previous = current;
+        current = current->next;
+    } 
+    struct train *next = current->next;
+    free_carriages(&current->carriages);
+    free(current);
+    if (previous != selected) {
+        previous->next = next;
+        return previous;
+    } 
+    *head = next;
+    return next;
+}
+
+void free_carriages(struct carriage **head) {
+    struct carriage *current = *head;
+    while (current != NULL) {
+        struct carriage *previous = current;
+        current = current->next;
+        free(previous);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////  PROVIDED FUNCTIONS  ///////////////////////////////
