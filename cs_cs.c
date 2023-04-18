@@ -46,6 +46,7 @@ struct carriage {
 
 // TODO: Any additional structs you want to add can go here:
 struct train {
+    int train_num;
     struct carriage *carriages;
     // Feel free to add more fields here if you want.
     struct train *next;
@@ -125,13 +126,17 @@ struct train *new_empty_train(struct train *head);
 struct train *create_train(void);
 struct carriage *remove_carriage(char id[ID_SIZE], struct carriage **head);
 void move_passenger(char source_id[ID_SIZE], 
-char destination_id[ID_SIZE],
-int move, struct carriage *head);
+    char destination_id[ID_SIZE],
+    int move, 
+    struct carriage *head);
 void count_total(struct carriage **head);
 void count_passenger(char start_id[ID_SIZE], 
     char end_id[ID_SIZE], 
     struct carriage **head);
-int capacity_cal(struct train *head);
+int count_position(struct train **head);
+int count_capacity(struct carriage **head);
+int count_carriages(struct carriage **head);
+int count_occupancy(struct carriage **head);
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -142,11 +147,7 @@ int main(void) {
     char id[ID_SIZE];
     enum carriage_type type;
     int capacity;
-    //struct carriage *head;
     struct carriage *print_carr;
-    //struct carriage *new_head;
-    // struct carriage *head_1;
-
     struct train *trains = create_train();
     struct train *selected = trains;
 
@@ -194,14 +195,10 @@ int main(void) {
             }
         } else if (letter == 'i') {
             int n;
-            //int size = 0;
             scanf("%d", &n);
             scan_id(id);
             type = scan_type();
             scanf("%d", &capacity);
-            //size = train_size(head);
-            // struct carriage *current = train;
-            // join_train_2(n, id, type, capacity, &current);
             if (n < 0) {
                 printf("ERROR: n must be at least 0\n");
             } else if (check_3(type) == 0) {
@@ -277,12 +274,19 @@ int main(void) {
            
             }
         } else if (letter == 'P') {
-            // int capcity = capacity_cal(trains);
-            // struct train *current = trains;
-            // while (current != NULL) {
-            //     print_train_summary()
-            //     current = current->carriages;
-
+            int is_selected, position, occupancy, num_carriages;
+            
+            position = count_position(&trains);
+            occupancy = count_occupancy(&selected->carriages);
+            capacity = count_capacity(&selected->carriages);
+            num_carriages = count_carriages(&selected->carriages);
+            //capacity = 
+            struct train *print_train = trains;
+            while (print_train != NULL) {
+                print_train_summary(1, position, capacity, occupancy, num_carriages);
+                print_train = print_train->next;
+            }
+            
         } else if (letter == 'r') {
             scan_id(id);
             selected->carriages = remove_carriage(id, &selected->carriages);
@@ -327,7 +331,9 @@ struct carriage *create_carriage(
     information->type = type; 
     return information; 
 }
+
 // TODO: Put your functions here
+
 struct train *create_train(void) {
     struct train *new_train = malloc(sizeof(struct train));
 
@@ -586,18 +592,46 @@ struct carriage *check_carriage_exist(struct carriage *head,
     return NULL;
 }
 
-// int capacity_cal(struct train *head) {
-//     struct train *current = head;
-//     int unoccupied = 0;
-//     int occupied = 0;
-//     while (current != NULL) {
-//         occupied += current->occupancy;
-//         unoccupied += current->capacity - (current->occupancy);
-//         current = current->next;
-//     }
-//     return 
-// }
-
+int count_capacity(struct carriage **head) {
+    struct carriage *current = *head;
+    int unoccupied = 0;
+    while (current != NULL) {
+        //occupied += current->occupancy;
+        unoccupied += current->capacity;
+        current = current->next;
+    }
+    return unoccupied;
+}
+int count_position(struct train **head) {
+    struct train *current = *head;
+    int counter = 0;
+    while (current != NULL) {
+        current->train_num = counter;
+        counter++;
+        current = current->next;
+    }
+    return counter;
+}
+int count_occupancy(struct carriage **head) {
+    struct carriage *current = *head;
+    int unoccupied = 0;
+    int occupied = 0;
+    while (current != NULL) {
+        occupied += current->occupancy;
+        unoccupied += current->capacity - (current->occupancy);
+        current = current->next;
+    }
+    return occupied;
+}
+int count_carriages(struct carriage **head) {
+    struct carriage *current = *head;
+    int counter = 0;
+    while (current != NULL) {
+        counter++;
+        current = current->next;
+    } 
+    return counter;
+}
 struct carriage *remove_carriage(char id[ID_SIZE], struct carriage **head) {
     if (check_carriage_exist(*head, id) == NULL) {
         printf("ERROR: No carriage exists with id: '%s'\n", id);
