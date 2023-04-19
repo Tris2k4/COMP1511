@@ -159,14 +159,8 @@ int main(void) {
         if (letter == '?') {
             print_usage();
         } else if (letter == 'a') {
-        // Create variables to scan arguments into
-            // We receive the arguments in the order: [carriage_id] [type] [capacity]
-            // 1. Scan id first
-            
             scan_id(id);
-            // 2. Then scan the carriage type
             type = scan_type();
-            // 3. Then scan the capacity. We can just use scanf() for this
             scanf("%d", &capacity);
 
             if (check_3(type) == 0) {
@@ -178,10 +172,13 @@ int main(void) {
             }
 
             else if (check_1(id, &selected->carriages) == 0) {
-                printf("ERROR: a carriage with id: '%s' already exists in this train\n", id);
+                printf("ERROR: a carriage with id: '%s' already exists in this train\n"
+                , id);
             }
 
-            if (check_3(type) == 1 && check_2(capacity) == 1 && check_1(id, &selected->carriages) == 1 ) {
+            if (check_3(type) == 1 && 
+            check_2(capacity) == 1
+            && check_1(id, &selected->carriages) == 1 ) {
                 join_train(id, type, capacity, &selected->carriages);
             }
             
@@ -208,9 +205,11 @@ int main(void) {
             } else if (check_2(capacity) == 0) {
                 printf("ERROR: Capacity should be between 1 and 999\n");
             } else if (check_1(id, &selected->carriages) == 0) {
-                printf("ERROR: a carriage with id: '%s' already exists in this train\n", id);
+                printf("ERROR: a carriage with id: '%s' already exists in this train\n"
+                , id);
             } else if (n == 0 || selected->carriages == NULL) {
-                selected->carriages = insert_head(id, type, capacity, &selected->carriages);
+                selected->carriages = insert_head(id, type, 
+                capacity, &selected->carriages);
             } else {
                 int count = 1;
                 struct carriage *new_node = create_carriage(id, type, capacity);
@@ -220,7 +219,8 @@ int main(void) {
                     current = current->next;
                 }
                 if (current == NULL) {
-                    selected->carriages = insert_tail(id, type, capacity, &selected->carriages);
+                    selected->carriages = insert_tail(id, type, 
+                    capacity, &selected->carriages);
                 } else {
                     new_node->next = current->next;
                     current->next = new_node;
@@ -247,7 +247,8 @@ int main(void) {
             } else if (check_1(id, &selected->carriages) == 1) {
                 printf("ERROR: No carriage exists with id: '%s'\n", id);
             } else {
-                selected->carriages = remove_passenger(id, passenger, &selected->carriages);
+                selected->carriages = remove_passenger(id,
+                passenger, &selected->carriages);
             }
         } else if (letter == 'T') {
             count_total(&selected->carriages);
@@ -291,7 +292,8 @@ int main(void) {
                 occupancy = count_occupancy(&print_train->carriages);
                 capacity = count_capacity(&print_train->carriages);
                 num_carriages = count_carriages(&print_train->carriages);
-                print_train_summary(is_selected, position, capacity, occupancy, num_carriages);
+                print_train_summary(is_selected, position, capacity
+                , occupancy, num_carriages);
                 print_train = print_train->next;
                 position++;
             }
@@ -307,7 +309,12 @@ int main(void) {
     }
     
     printf("\nGoodbye\n");
-
+    while (trains != NULL) {
+        free_carriages(&trains->carriages);
+        struct train *temp = trains;
+        trains = trains->next;
+        free(temp);
+    }
     
     return 0;
 }
@@ -552,7 +559,7 @@ char destination_id[ID_SIZE], int move, struct carriage *head) {
     }
 
 
-    if (move > 0 && check_carriage_exist(head,source_id) != NULL 
+    if (move > 0 && check_carriage_exist(head, source_id) != NULL 
     && move <= source->occupancy && check_carriage_exist(head, destination_id) != NULL
     && (move <= des->capacity - des->occupancy || des->next != NULL)) {
 
@@ -578,7 +585,8 @@ char destination_id[ID_SIZE], int move, struct carriage *head) {
                 pass_move += move_count;
                 available_move -= move_count;
 
-                printf("%d passengers moved from %s to %s\n", move_count, source->carriage_id, des->carriage_id);
+                printf("%d passengers moved from %s to %s\n", 
+                move_count, source->carriage_id, des->carriage_id);
             }
             if (available_move == 0) {
                 if (des->next == NULL) break;
@@ -665,6 +673,8 @@ struct carriage *remove_carriage(char id[ID_SIZE], struct carriage **head) {
 struct train *remove_train(struct train **head, struct train *selected) {
     if ((*head)->next == NULL) {
         free_carriages(&(*head)->carriages);
+        free(*head);
+        *head = create_train();
         return *head;
     }
     struct train *previous = *head;
