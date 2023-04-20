@@ -1,7 +1,7 @@
-// Program name
+// Program name: A choo choo train
 //
 // This program was written by Tri Nguyen (z5481840)
-// on [/4/2023]
+// on [19/4/2023]
 //
 // TODO: Description of program
 
@@ -87,9 +87,9 @@ struct carriage *create_carriage(
 //struct carriage *carriage_print(struct carriage *information);
 //struct node *head(char id[ID_SIZE], enum carriage_type type, int capacity);
 //void print_nodes(struct carriage *head);
-int check_1(char id[ID_SIZE], struct carriage **head);
-int check_2(int capacity);
-int check_3(enum carriage_type type);
+int check_id(char id[ID_SIZE], struct carriage **head);
+int check_capacity(int capacity);
+int check_type(enum carriage_type type);
 struct carriage *join_train(char id[ID_SIZE], 
     enum carriage_type type,
     int capacity,
@@ -126,6 +126,7 @@ struct train *new_empty_train(struct train *head);
 struct train *create_train(void);
 struct carriage *remove_carriage(char id[ID_SIZE], struct carriage **head);
 struct train *remove_train(struct train **head, struct train *selected);
+struct train *merge_train(struct train **head_1, struct carriage **head_2);
 void move_passenger(char source_id[ID_SIZE], 
     char destination_id[ID_SIZE],
     int move, 
@@ -156,34 +157,39 @@ int main(void) {
     // TODO: Start stage 1.2 here!
     printf("Enter command: ");
     while (scanf(" %c", &letter) != EOF) {
+    //*------------------------------------STAGE 1---------------------------------------------
         if (letter == '?') {
+            //* stage 1.2
             print_usage();
         } else if (letter == 'a') {
+            //* stage 1.3 + 1.5
             scan_id(id);
             type = scan_type();
             scanf("%d", &capacity);
-
-            if (check_3(type) == 0) {
+            //* Error checking for stage 1.5
+            if (check_type(type) == 0) {
                 printf("ERROR: Invalid carriage type\n");
             }
 
-            else if (check_2(capacity) == 0) {
+            else if (check_capacity(capacity) == 0) {
                 printf("ERROR: Capacity should be between 1 and 999\n");
             }
 
-            else if (check_1(id, &selected->carriages) == 0) {
+            else if (check_id(id, &selected->carriages) == 0) {
                 printf("ERROR: a carriage with id: '%s' already exists in this train\n"
                 , id);
             }
-
-            if (check_3(type) == 1 && 
-            check_2(capacity) == 1
-            && check_1(id, &selected->carriages) == 1 ) {
+//* If there is no error, we will run an if statement to join the train together
+            if (check_type(type) == 1 && 
+            check_capacity(capacity) == 1
+            && check_id(id, &selected->carriages) == 1 ) {
                 join_train(id, type, capacity, &selected->carriages);
             }
             
         } else if (letter == 'p') { 
+            //* stage 1.4
             print_carr = selected->carriages;
+            //* check if the train is empty, otherwise print out the train
             if (print_carr == NULL) {
                 printf("This train is empty!\n");
             } else {
@@ -192,22 +198,26 @@ int main(void) {
                     print_carr = print_carr->next;
                 }
             }
+ //*-----------------------------------STAGE 2----------------------------------------
         } else if (letter == 'i') {
-            int n;
+            //* stage 2.1
+            int n; //! n is a number represents the position of the train
             scanf("%d", &n);
             scan_id(id);
             type = scan_type();
             scanf("%d", &capacity);
+            //* error checking for stage 2.1
             if (n < 0) {
                 printf("ERROR: n must be at least 0\n");
-            } else if (check_3(type) == 0) {
+            } else if (check_type(type) == 0) {
                 printf("ERROR: Invalid carriage type\n");
-            } else if (check_2(capacity) == 0) {
+            } else if (check_capacity(capacity) == 0) {
                 printf("ERROR: Capacity should be between 1 and 999\n");
-            } else if (check_1(id, &selected->carriages) == 0) {
+            } else if (check_id(id, &selected->carriages) == 0) {
                 printf("ERROR: a carriage with id: '%s' already exists in this train\n"
                 , id);
             } else if (n == 0 || selected->carriages == NULL) {
+                //* consider if n is 0, then we will insert it at the first position
                 selected->carriages = insert_head(id, type, 
                 capacity, &selected->carriages);
             } else {
@@ -228,40 +238,49 @@ int main(void) {
                 }
             }
         } else if (letter == 's') {
+            //* stage 2.2 
             int passenger;
             scan_id(id);
             scanf("%d", &passenger);
+            //* error checking again T_T
             if (passenger <= 0) {
                 printf("ERROR: n must be a positive integer\n");
-            } else if (check_1(id, &selected->carriages) == 1) {
+            } else if (check_id(id, &selected->carriages) == 1) {
                 printf("ERROR: No carriage exists with id: '%s'\n", id);
             } else {
                 selected->carriages = add_passenger(id, passenger, &selected->carriages);
             }
         } else if (letter == 'd') {
+            //* stage 2.3 
             int passenger;
             scan_id(id);
             scanf("%d", &passenger);
+            //* checking error for stage 2.3
             if (passenger <= 0) {
                 printf("ERROR: n must be a positive integer\n");
-            } else if (check_1(id, &selected->carriages) == 1) {
+            } else if (check_id(id, &selected->carriages) == 1) {
                 printf("ERROR: No carriage exists with id: '%s'\n", id);
             } else {
                 selected->carriages = remove_passenger(id,
                 passenger, &selected->carriages);
             }
         } else if (letter == 'T') {
+            //* stage 2.4
             count_total(&selected->carriages);
         } else if (letter == 'c') {
+            //* stage 2.4 continue with the command 'c'
             char start_id[ID_SIZE]; scan_id(start_id);
             char end_id[ID_SIZE]; scan_id(end_id);
             count_passenger(start_id, end_id, &selected->carriages);
         } else if (letter == 'm') {
+            //* stage 2.5
             char source_id[ID_SIZE]; scan_id(source_id);
             char destination_id[ID_SIZE]; scan_id(destination_id);
             int passenger; scanf("%d", &passenger);
             move_passenger(source_id, destination_id, passenger, selected->carriages);
+ //*----------------------------------STAGE 3-----------------------------------------
         } else if (letter == 'N') {
+            //* stage 3.1
             trains = new_empty_train(trains);
         } else if (letter == '>') {
             if (selected != NULL && selected->next != NULL) {
@@ -277,11 +296,11 @@ int main(void) {
            
             }
         } else if (letter == 'P') {
+            //* stage 3.2
             int is_selected = 0;
             int position = 0;
             int occupancy, num_carriages;
          
-            //capacity = 
             struct train *print_train = trains;
             while (print_train != NULL) {
                 if (print_train == selected) {
@@ -299,10 +318,15 @@ int main(void) {
             }
             
         } else if (letter == 'r') {
+            //* stage 3.3
             scan_id(id);
             selected->carriages = remove_carriage(id, &selected->carriages);
         } else if (letter == 'R') {
+            //* stage 3.4
             selected = remove_train(&trains, selected);
+ //*---------------------------------STAGE 4--------------------------------
+        } else if (letter == 'M') {
+
         }
     
         printf("Enter command: ");
@@ -382,7 +406,7 @@ struct carriage **head) {
     return *head;
 }
 
-int check_1(char id[ID_SIZE], struct carriage **head) {
+int check_id(char id[ID_SIZE], struct carriage **head) {
     struct carriage *current = *head;
     while (current != NULL) {
         if (strcmp(current->carriage_id, id) == 0) {
@@ -392,14 +416,14 @@ int check_1(char id[ID_SIZE], struct carriage **head) {
     }
     return 1;
 }
-int check_2(int capacity) {
+int check_capacity(int capacity) {
     if (capacity <= 0 || capacity >= 1000) {
         return 0;
     } else {
         return 1;
     }
 }
-int check_3(enum carriage_type type) {
+int check_type(enum carriage_type type) {
     if (type == INVALID_TYPE) {
         return 0;
     }
@@ -407,8 +431,8 @@ int check_3(enum carriage_type type) {
         return 1;
     }
 }
-//return 1: true
-//return 0: false
+//* return 1 if it's true
+//* return 0 if it's false
 
 struct carriage *insert_head( 
     char id[ID_SIZE], 
@@ -428,9 +452,7 @@ struct carriage *insert_tail(
     struct carriage **head) {
     struct carriage *tail = create_carriage(id, type, capacity);
     struct carriage *current = *head;
-    // if (current == NULL) {
-    //     (*head)->next = current;
-    // }
+
     while (current->next != NULL) {
         current = current->next;
     } 
@@ -514,7 +536,12 @@ struct carriage **head) {
         count++;
         current = current->next;
     }
-
+    //! Error checking whether there is exist of carriage as 
+    //! well as caririages' order
+    //* if the start and end has the value of -1, then we will say that
+    //* there is no exist of that particular carriage
+    //* However, if the start value greater than the end value, then
+    //* the carriage will be in the wrong order
     if (start == -1) {
         printf("ERROR: No carriage exists with id: '%s'\n", start_id);
     } else if (end == -1) {
@@ -546,6 +573,8 @@ char destination_id[ID_SIZE], int move, struct carriage *head) {
     struct carriage *source = check_carriage_exist(head, source_id);
     struct carriage *des = check_carriage_exist(head, destination_id);
     
+    //! Error checking if the number of moves you enter is negative, 
+    //! check carriages' exist as well as space to move passenger
     if (move <= 0) {
         printf("ERROR: n must be a positive integer\n");
     } else if (check_carriage_exist(head, source_id) == NULL) {
@@ -558,7 +587,8 @@ char destination_id[ID_SIZE], int move, struct carriage *head) {
         printf("ERROR: not enough space to move passengers\n");
     }
 
-
+    //* if it passes all the error checking procedures, then we create an if 
+    //* statement to operate the move of passenger 
     if (move > 0 && check_carriage_exist(head, source_id) != NULL 
     && move <= source->occupancy && check_carriage_exist(head, destination_id) != NULL
     && (move <= des->capacity - des->occupancy || des->next != NULL)) {
@@ -599,8 +629,8 @@ char destination_id[ID_SIZE], int move, struct carriage *head) {
 }
 
 struct carriage *check_carriage_exist(struct carriage *head, 
+    //* A function to check the existent of a carriage in a train
     char id[ID_SIZE]) {
-
     struct carriage *current = head;
     while (current != NULL) {
         if (strcmp(current->carriage_id, id) == 0) return current;
@@ -613,7 +643,6 @@ int count_capacity(struct carriage **head) {
     struct carriage *current = *head;
     int unoccupied = 0;
     while (current != NULL) {
-        //occupied += current->occupancy;
         unoccupied += current->capacity;
         current = current->next;
     }
@@ -641,20 +670,22 @@ int count_carriages(struct carriage **head) {
     return counter;
 }
 struct carriage *remove_carriage(char id[ID_SIZE], struct carriage **head) {
+    //* checking the existent of a carriage
     if (check_carriage_exist(*head, id) == NULL) {
         printf("ERROR: No carriage exists with id: '%s'\n", id);
     }
+    //* if there is no error, we will start remove carriage in an else statement
     else {
         struct carriage *current = *head;
-        //if (current->carriage_id == NULL) return NULL;
         if (strcmp(id, current->carriage_id) == 0) {
+            //* this if statement will help us to remove the head of the carriage
             struct carriage *old_head = *head;
             current = current->next;
             free(old_head);
             return current;
         } 
+        //* the program below will help us to remove the carriage at any position
         struct carriage *previous = *head;
-        //struct carriage *current = *head;
         while (current != NULL) {
             if (strcmp(current->carriage_id, id) == 0) {
                 previous->next = current->next;
@@ -702,6 +733,9 @@ void free_carriages(struct carriage **head) {
         free(previous);
     }
 }
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////  PROVIDED FUNCTIONS  ///////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
